@@ -1,27 +1,35 @@
 <style type='text/css'>
-	.embeddedServiceHelpButton .helpButton .uiButton {
-		background-color: #003366!important;
-		font-family: "Arial", sans-serif;
-	}
-	.embeddedServiceHelpButton .helpButton .uiButton:focus {
-      outline: 1px solid #003366;
-  }
-  span.message {
-      background-color: unset!important;
-  }
-  
-  .embeddedServiceSidebarButton:not(:disabled):hover {
-      color: white!important;
-  }
-  .endChatButton:focus .label { 
-      color: white !important;
-  }
-  .endChatButton:focus {
-      background: #003366 !important;
-  }
-.embeddedServiceHelpButton .helpButton .uiButton:focus {
-  outline: 1px solid #003366;
-}
+.embeddedServiceHelpButton .helpButton .uiButton {
+            background-color: #003366!important;
+            font-family: "Arial", sans-serif;
+        }
+        .embeddedServiceHelpButton .helpButton .uiButton:focus {
+            outline: 1px solid #003366;
+        }
+        span.message{
+            background-color: unset!important;
+        }
+        .richText span ul li{
+            display: list-item!important;
+            list-style: disc!important;
+            margin-left: 1.75!important;
+        }
+        .richText span ol li{
+            display: list-item!important;
+            list-style: decimal!important;
+        }
+        .uiButton--default:hover .label{
+            color: white!important;
+        }
+        .embeddedServiceSidebarButton:not(:disabled):hover {
+            color: white!important;
+        }
+        .endChatButton:focus .label { 
+            color: white !important;
+        }
+        .endChatButton:focus {
+            background: #003366!important;
+        }
 </style>
 
 <script type='text/javascript' src='https://service.force.com/embeddedservice/5.0/esw.min.js'></script>
