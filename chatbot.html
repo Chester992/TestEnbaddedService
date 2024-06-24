@@ -65,6 +65,13 @@
                         }
                     }, 10);
                 }
+
+                Array.from(document.querySelectorAll('.chatContent')).forEach((element, index) => {
+                    Array.from(element.querySelectorAll('a[href^="mailto:"]')).forEach((el, index) => {
+                        el.setAttribute("style", "text-decoration:none;color:#FFF;");
+                    });
+                });
+
             }
             setTimeout(function manageUnseen() {
                 // nasconde unseenMessageBanner nel caso in cui compaia
@@ -265,32 +272,6 @@
                     helpButtonEn[0].setAttribute('aria-live', "assertive");
                     helpButtonEn[0].setAttribute('aria-atomic', "true");
                 }
-
-                // accessibilità ingrandimento testo
-                var intervalPreChat = window.setInterval(function () {
-                    var preChat = document.getElementsByClassName('slds-rich-text-editor__output');
-                    if (preChat.length > 0) {
-                        for (var i = 0; i < preChat.length; i++) {
-                            var pElements = preChat[i].getElementsByTagName('p');
-                            if (pElements.length > 0) {
-                                for (var j = 0; j < pElements.length; j++) {
-                                    var iElements = pElements[j].getElementsByTagName('i');
-                                    if (iElements.length > 0) {
-                                        for (var k = 0; k < iElements.length; k++) {
-                                            if (iElements[k].innerHTML === 'Privacy Policy') {
-                                                iElements[k].setAttribute('style', "font-size: 1.375rem");
-                                                iElements[k].innerHTML = "<strong>" + iElements[k].innerHTML + "</strong>";
-                                            } else {
-                                                iElements[k].setAttribute('style', "font-size: 1rem");
-                                            }
-                                        }
-                                    }
-                                }
-                                clearInterval(intervalPreChat);
-                            }
-                        }
-                    }
-                }, 10);
             });
 
             embedded_svc.addEventHandler("afterMinimize", function (data) {
@@ -342,7 +323,7 @@
                 var featureBody = document.getElementsByClassName("featureBody")[0];
                 featureBody.setAttribute("role", "");
             });
-            
+
         };
     
         if (!window.embedded_svc) {
