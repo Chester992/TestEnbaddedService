@@ -66,6 +66,7 @@
                     }, 10);
                 }
 
+                // cambio style messaggio con email
                 Array.from(document.querySelectorAll('.chatContent')).forEach((element, index) => {
                     Array.from(element.querySelectorAll('a[href^="mailto:"]')).forEach((el, index) => {
                         el.setAttribute("style", "text-decoration:none;color:#FFF;");
