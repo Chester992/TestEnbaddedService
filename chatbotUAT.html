@@ -1,5 +1,5 @@
 <style type='text/css'>
-.embeddedServiceHelpButton .helpButton .uiButton {
+        .embeddedServiceHelpButton .helpButton .uiButton {
             background-color: #003366!important;
             font-family: "Arial", sans-serif;
         }
@@ -30,57 +30,329 @@
         .endChatButton:focus {
             background: #003366!important;
         }
-</style>
+        
+    </style>
+    
+    <script type='text/javascript' src='https://service.force.com/embeddedservice/5.0/esw.min.js'></script>
+    <script type='text/javascript'>
 
-<script type='text/javascript' src='https://service.force.com/embeddedservice/5.0/esw.min.js'></script>
-<script type='text/javascript'>
-	var initESW = function(gslbBaseURL) {
-		embedded_svc.settings.displayHelpButton = true; //Or false
-		embedded_svc.settings.language = 'it'; //For example, enter 'en' or 'en-US'
+        // metodo custom per accessibilità
+        function accessibilityOnNewMsg() {
+            // gestione accessibilità per nuovi messaggi e menù inviati dal bot
+            // recupero wrapper e aggiunta tabindex su ogni figlio (singoli messaggi) per renderli navigabili da tastiera
+            var wrapperElementClass = document.getElementsByClassName("wrapper");
+            if (wrapperElementClass.length > 0) {
+                for (var i = 0; i < wrapperElementClass.length; i++) {
+                    wrapperElementClass[i].setAttribute("tabindex", "0");
+                }
+            }
 
-		embedded_svc.settings.defaultMinimizedText = 'Ti serve aiuto?'; //(Defaults to Chat with an Expert)
-		//embedded_svc.settings.disabledMinimizedText = '...'; //(Defaults to Agent Offline)
+            // recupero messaggi dell'utente
+            var userMsgs = document.getElementsByClassName("chasitor");
+            if (userMsgs.length > 0) {
+                // recupero contenuto ultimo messaggio e set aria-live polite per farlo leggere dallo SR
+                var lastUserMsg = userMsgs[userMsgs.length - 1];
+                var nextSibling = lastUserMsg.nextSibling;
+                if (nextSibling) {
+                    nextSibling.setAttribute("aria-live", "polite");
+                } else {
+                    // se non trova l'ultimo messaggio riprova con un timeout poichè il bot impiega tempo a rispondere
+                    var intervalResponse = window.setInterval(function () {
+                        var nextSibling = lastUserMsg.nextSibling;
+                        if (nextSibling) {
+                            nextSibling.setAttribute("aria-live", "polite");
+                            clearInterval(intervalResponse);
+                        }
+                    }, 10);
+                }
+            }
+            setTimeout(function manageUnseen() {
+                // nasconde unseenMessageBanner nel caso in cui compaia
+                var unseenMessageBanner = document.getElementsByClassName("unseenMessageBanner");
+                if (unseenMessageBanner.length > 0) {
+                    unseenMessageBanner[0].setAttribute("aria-hidden", "true");
+                    unseenMessageBanner[0].setAttribute("tabindex", "-1");
+                }
+            }, 500);
 
-		embedded_svc.settings.loadingText = 'Caricamento'; //(Defaults to Loading)
-		//embedded_svc.settings.storageDomain = 'yourdomain.com'; //(Sets the domain for your deployment so that visitors can navigate subdomains during a chat session)
+        }
 
-		// Settings for Chat
-		//embedded_svc.settings.directToButtonRouting = function(prechatFormData) {
-			// Dynamically changes the button ID based on what the visitor enters in the pre-chat form.
-			// Returns a valid button ID.
-		//};
-		//embedded_svc.settings.prepopulatedPrechatFields = {}; //Sets the auto-population of pre-chat form fields
-		//embedded_svc.settings.fallbackRouting = []; //An array of button IDs, user IDs, or userId_buttonId
-		//embedded_svc.settings.offlineSupportMinimizedText = '...'; //(Defaults to Contact Us)
+        // metodo custom per accessibilità
+        function manageHelpButton() {
+            var intervalTitle = window.setInterval(function () {
 
-		embedded_svc.settings.enabledFeatures = ['LiveAgent'];
-		embedded_svc.settings.entryFeature = 'LiveAgent';
+                // aggiunge title e aria-label sul pulsante iniziale
+                var helpButtonEnElements = document.getElementsByClassName('helpButtonEnabled');
 
-		embedded_svc.init(
-			'https://soresacot--uat.sandbox.my.salesforce.com',
-			'https://soresacot--uat.sandbox.my.salesforce-sites.com/',
-			gslbBaseURL,
-			'00D5E000000Ba2C',
-			'URP_CodaChatbot',
-			{
-				baseLiveAgentContentURL: 'https://c.la2-c1cs-fra.salesforceliveagent.com/content',
-				deploymentId: '5725E000000CcZU',
-				buttonId: '5735E000000CchJ',
-				baseLiveAgentURL: 'https://d.la2-c1cs-fra.salesforceliveagent.com/chat',
-				eswLiveAgentDevName: 'URP_CodaChatbot',
-				isOfflineSupportEnabled: false
-			}
-		);
-	};
+                if (helpButtonEnElements.length > 0) {
+                    var helpButtonEn = helpButtonEnElements[0];
+                    helpButtonEn.setAttribute('title', "Assistente Virtuale");
+                    helpButtonEn.setAttribute('aria-label', "Assistente virtuale premi invio per conoscere la privacy policy e iniziare la conversazione.");
+                    clearInterval(intervalTitle);
+                }
+            }, 10);
+        }
 
-	if (!window.embedded_svc) {
-		var s = document.createElement('script');
-		s.setAttribute('src', 'https://soresacot--uat.sandbox.my.salesforce.com/embeddedservice/5.0/esw.min.js');
-		s.onload = function() {
-			initESW(null);
-		};
-		document.body.appendChild(s);
-	} else {
-		initESW('https://service.force.com');
-	}
-</script>
+        // metodo custom per accessibilità
+        function manageInput() {
+            // aggiunge la label alla casella di input
+            var inputClass = document.getElementsByClassName("chasitorControls");
+            if (inputClass.length > 0) {
+                var uiLabel = inputClass[0].getElementsByTagName('label')[0];
+                if (uiLabel) {
+                    uiLabel.firstChild.innerHTML = "Digita il tuo messaggio e premi invio sulla tastiera per consegnarlo";
+                }
+            }
+        }
+
+        function managePreTag(node) {
+            // metodo per escludere dallo screenreader il messaggio contenente il json per il rich text
+            var intervalTitle = window.setInterval(function () {
+                var allPre = node.getElementsByTagName('pre');
+                if (allPre.length > 0) {
+                    for (var i = 0; i < allPre.length; i++) {
+                        if (allPre[i].textContent.includes('rich_text:')) {
+                            allPre[i].setAttribute("aria-hidden", "true");
+                        } else {
+                            allPre[i].setAttribute("aria-hidden", "false");
+                        }
+                    }
+                }
+            }, 10);
+        }
+
+        // metodo custom per accessibilità
+        const callback = function (mutationsList, observer) {
+            // controllo delle mutazioni che avvengono nel body
+            for (var i = 0; i < mutationsList.length; i++) {
+                var mutation = mutationsList[i];
+                for (var j = 0; j < mutation.addedNodes.length; j++) {
+                    var node = mutation.addedNodes[j];
+                    // se un nodo che subito una mutazione ha la classe embeddedServiceHelpButton richiama il manageHelpButton (gestione comparsa button chatbot)
+                    if (node.className == 'embeddedServiceHelpButton') {
+                        manageHelpButton();
+                    }
+                    if (node.className == 'accessibleText') {
+                        managePreTag(node);
+                    }
+                    // se un nodo che ha subito una mutazione ha le seguenti classi, vuol dire che la finestra del bot è stata aperta
+                    // viene disconnesso l'observer attuale (perchè in ascolto su tutto il body) e ne viene istanziato uno più specifico che ascolta soltanto le mutazioni che avvengono all'interno della modale del bot
+                    if (node.className == 'modalContainer sidebarMaximized loading initialLoading layout-hidden embeddedServiceSidebar') {
+                        observerDialogBox.observe(document.getElementsByClassName("modalContainer")[0], config);
+                        observer.disconnect();
+                    }
+                    if (node.id == 'esw_storage_iframe') {
+                        node.setAttribute("title", "esw_storage_iframe");
+                    }
+                    if (node.id === 'fileUploadForm') {
+                        node.remove();
+                    }
+                }
+            }
+        };
+
+        // metodo custom per accessibilità
+        const callbackDialogBox = function (mutationsList, observer) {
+            // controllo delle mutazioni che avvengono nella modale del bot
+            for (var i = 0; i < mutationsList.length; i++) {
+                var mutation = mutationsList[i];
+                for (var j = 0; j < mutation.addedNodes.length; j++) {
+                    var node = mutation.addedNodes[j];
+
+                    if (node.className == 'accessibleText') {
+                        managePreTag(node);
+                    }
+                    // nasconde allo screen reader il banner dei messaggi non letti e lo rende non raggiungibile tramite tab
+                    if (node.className == 'unseenMessageBanner embeddedServiceLiveAgentStateChatUnreadMessageBanner') {
+                        node.setAttribute("aria-hidden", "true");
+                        node.setAttribute("tabindex", "-1");
+                    }
+                    // gestione conversazione
+                    // il wrapper della conversazione deve avere aria-live off per evitare che rilegga ogni volta da capo
+                    if (node.classList && node.classList.contains('wrapper')) {
+                        var wrapperClass = document.getElementsByClassName("messageWrapper");
+                        if (wrapperClass.length > 0) {
+                            var wrapper = wrapperClass[0];
+                            if (!wrapper.classList.contains("accessibleWrapper")) {
+                                wrapper.setAttribute("aria-live", "off");
+                                wrapper.classList.add("accessibleWrapper");
+                            }
+                        }
+                        // rende il wrapper accessibile tramite tab
+                        node.setAttribute("tabindex", "0");
+                    }
+                    // gestione casella di input, che ha queste classi quando compare per la prima volta (prima volta che viene fatto il maximize)
+                    if (node.className == 'featureBody embeddedServiceSidebarFeature embeddedServiceLiveAgentSidebarFeature') {
+                        manageInput();
+                    }
+                    // gestione casella di input, che ha queste classi quando compare su aggiornamento della pagina
+                    if (node.className == 'stateBody embeddedServiceSidebarState embeddedServiceLiveAgentStateChat') {
+                        manageInput();
+                    }
+
+                    // aggiunta title all'header della chat
+                    if (node.className === 'sidebarHeader') {
+                        node.setAttribute('title', "Chatbot Fatturazione e Corrispettivi");
+                    }
+
+                }
+            }
+
+        };
+
+        const targetNodeGeneral = document.body;
+        const config = {
+            attributes: false,
+            characterData: false,
+            childList: true,
+            subtree: true
+        };
+
+        // observer per click su maximize
+        const observer = new MutationObserver(callback);
+
+        // observer su refresh pagina
+        const observerDialogBox = new MutationObserver(callbackDialogBox);
+
+        var initESW = function(gslbBaseURL) {
+
+            observer.observe(targetNodeGeneral, config);
+
+            embedded_svc.settings.displayHelpButton = true; //Or false
+            embedded_svc.settings.language = 'it'; //For example, enter 'en' or 'en-US'
+    
+            embedded_svc.settings.defaultMinimizedText = 'Ti serve aiuto?'; //(Defaults to Chat with an Expert)
+            //embedded_svc.settings.disabledMinimizedText = '...'; //(Defaults to Agent Offline)
+    
+            embedded_svc.settings.loadingText = 'Caricamento'; //(Defaults to Loading)
+            //embedded_svc.settings.storageDomain = 'yourdomain.com'; //(Sets the domain for your deployment so that visitors can navigate subdomains during a chat session)
+    
+            // Settings for Chat
+            //embedded_svc.settings.directToButtonRouting = function(prechatFormData) {
+                // Dynamically changes the button ID based on what the visitor enters in the pre-chat form.
+                // Returns a valid button ID.
+            //};
+            //embedded_svc.settings.prepopulatedPrechatFields = {}; //Sets the auto-population of pre-chat form fields
+            //embedded_svc.settings.fallbackRouting = []; //An array of button IDs, user IDs, or userId_buttonId
+            //embedded_svc.settings.offlineSupportMinimizedText = '...'; //(Defaults to Contact Us)
+    
+            embedded_svc.settings.enabledFeatures = ['LiveAgent'];
+            embedded_svc.settings.entryFeature = 'LiveAgent';
+    
+            embedded_svc.init(
+                'https://soresacot--uat.sandbox.my.salesforce.com',
+                'https://soresacot--uat.sandbox.my.salesforce-sites.com/',
+                gslbBaseURL,
+                '00D5E000000Ba2C',
+                'URP_CodaChatbot',
+                {
+                    baseLiveAgentContentURL: 'https://c.la2s-core1.sfdc-3d0u2f.salesforceliveagent.com/content',
+                    deploymentId: '5725E000000CcZU',
+                    buttonId: '5735E000000CchJ',
+                    baseLiveAgentURL: 'https://d.la2s-core1.sfdc-3d0u2f.salesforceliveagent.com/chat',
+                    eswLiveAgentDevName: 'URP_CodaChatbot',
+                    isOfflineSupportEnabled: false
+                }
+            );
+
+            embedded_svc.addEventHandler("onHelpButtonClick", function (data) {
+                var chatButtonClasses = document.getElementsByClassName("embeddedServiceIcon");
+                if (chatButtonClasses.length > 0) {
+                    //var chatButton = chatButtonClasses[0];
+                    //chatButton.classList.add("load-animation");
+                    var helpButtonEn = document.getElementsByClassName('helpButtonEnabled');
+                    helpButtonEn[0].setAttribute('aria-label', "Apertura della finestra di dialogo in corso.");
+                    helpButtonEn[0].setAttribute('aria-live', "assertive");
+                    helpButtonEn[0].setAttribute('aria-atomic', "true");
+                }
+
+                // accessibilità ingrandimento testo
+                var intervalPreChat = window.setInterval(function () {
+                    var preChat = document.getElementsByClassName('slds-rich-text-editor__output');
+                    if (preChat.length > 0) {
+                        for (var i = 0; i < preChat.length; i++) {
+                            var pElements = preChat[i].getElementsByTagName('p');
+                            if (pElements.length > 0) {
+                                for (var j = 0; j < pElements.length; j++) {
+                                    var iElements = pElements[j].getElementsByTagName('i');
+                                    if (iElements.length > 0) {
+                                        for (var k = 0; k < iElements.length; k++) {
+                                            if (iElements[k].innerHTML === 'Privacy Policy') {
+                                                iElements[k].setAttribute('style', "font-size: 1.375rem");
+                                                iElements[k].innerHTML = "<strong>" + iElements[k].innerHTML + "</strong>";
+                                            } else {
+                                                iElements[k].setAttribute('style', "font-size: 1rem");
+                                            }
+                                        }
+                                    }
+                                }
+                                clearInterval(intervalPreChat);
+                            }
+                        }
+                    }
+                }, 10);
+            });
+
+            embedded_svc.addEventHandler("afterMinimize", function (data) {
+                var modalClasses = document.getElementsByClassName("modalContainer");
+                if (modalClasses.length > 0) {
+                    var modal = modalClasses[0];
+                    modal.classList.remove("firstSidebarMaximized");
+                }
+                /*gestione minimized component standard */
+                var minimizedButton = document.getElementsByClassName("embeddedServiceSidebarMinimizedDefaultUI");
+                if (minimizedButton.length > 0) {
+                    minimizedButton[0].setAttribute("aria-label", "Riprendi la conversazione con l'Assistente Virtuale.");
+                    minimizedButton[0].setAttribute("title", "Assistente Virtuale");
+                }
+            });
+
+
+            embedded_svc.addEventHandler("afterDestroy", function (data) {
+                var helpButtonEn = document.getElementsByClassName('helpButtonEnabled');
+                helpButtonEn[0].setAttribute('title', "Assistente Virtuale");
+                helpButtonEn[0].setAttribute('aria-label', "Assistente virtuale premi invio per conoscere la privacy policy e iniziare la conversazione.");
+                helpButtonEn[0].setAttribute('aria-live', "none");
+                helpButtonEn[0].removeAttribute('aria-atomic');
+                observer.observe(targetNodeGeneral, config);
+                var helpButtonClasses = document.getElementsByClassName("embeddedServiceHelpButton");
+                if (helpButtonClasses.length > 0) {
+                    var helpButton = helpButtonClasses[0];
+                    if (helpButton.classList.contains("sidebarMaximized")) {
+                        helpButton.classList.remove("sidebarMaximized");
+                    }
+                }
+                var modalClasses = document.getElementsByClassName("modalContainer");
+                if (modalClasses.length > 0) {
+                    var modal = modalClasses[0];
+                    modal.classList.remove("firstSidebarMaximized");
+                }
+
+            });
+
+            embedded_svc.addEventHandler("onAgentMessage", function (data) {
+                accessibilityOnNewMsg();
+            });
+
+            embedded_svc.addEventHandler("onAgentRichMessage", function (data) {
+                accessibilityOnNewMsg();
+            });
+
+            embedded_svc.addEventHandler("onChasitorMessage", function (data) {
+                var featureBody = document.getElementsByClassName("featureBody")[0];
+                featureBody.setAttribute("role", "");
+            });
+
+        };
+    
+        if (!window.embedded_svc) {
+            var s = document.createElement('script');
+            s.setAttribute('src', 'https://soresacot--uat.sandbox.my.salesforce.com/embeddedservice/5.0/esw.min.js');
+            s.onload = function() {
+                initESW(null);
+            };
+            document.body.appendChild(s);
+        } else {
+            initESW('https://service.force.com');
+        }
+    </script>
